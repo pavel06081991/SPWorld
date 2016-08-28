@@ -3,6 +3,7 @@
 // See http://blog.mxstbr.com/2016/01/react-apps-with-pages for more information
 // about the code splitting business
 import { getAsyncInjectors } from 'utils/asyncInjectors';
+import { IsUserAdmin } from 'routesPermissions';
 
 const errorLoading = (err) => {
   console.error('Dynamic page loading failed', err); // eslint-disable-line no-console
@@ -18,21 +19,25 @@ export default function createRoutes(store) {
 
   return [
     {
-      path: '/',
-      name: 'home',
+      path: '/login',
+      name: 'login',
       getComponent(nextState, cb) {
         const importModules = Promise.all([
-          System.import('containers/HomePage'),
+          System.import('containers/Login/reducer'),
+          System.import('containers/Login/sagas'),
+          System.import('containers/Login'),
         ]);
 
         const renderRoute = loadModule(cb);
 
-        importModules.then(([component]) => {
+        importModules.then(([reducer, sagas, component]) => {
+          injectReducer('login', reducer.default);
+          injectSagas(sagas.default);
           renderRoute(component);
         });
 
         importModules.catch(errorLoading);
-      },
+      }
     }, {
       path: '*',
       name: 'notfound',
